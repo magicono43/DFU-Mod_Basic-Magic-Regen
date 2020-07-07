@@ -23,6 +23,7 @@ namespace BasicMagicRegen
 
         static PlayerEntity player = GameManager.Instance.PlayerEntity;
         static int regenAmount = 0;
+        public static int MagicRoundTracker { get; set; }
 
         [Invoke(StateManager.StateTypes.Start, 0)]
         public static void Init(InitParams initParams)
@@ -72,7 +73,7 @@ namespace BasicMagicRegen
 		
 		// Look into making a super basic "OnNewMagicRound" based "live" magic regeneration function and see if it works out.
 		
-		private static void MagicRegen_OnNewMagicRound()
+		private static void MagicRegen_OnNewMagicRound() // Work on the percentage based "setting" option over this static one, also other possible options.
 		{
             float playerWillMod = (player.Stats.LiveWillpower / 10f);
             int playerLuck = player.Stats.LiveLuck - 50;
@@ -83,6 +84,16 @@ namespace BasicMagicRegen
             {
                 if (player.CurrentMagicka < player.MaxMagicka) // Only allows magic regeneration to occur when the player is below their maximum mana amount.
                 {
+                    if (DaggerfallUI.Instance.UserInterfaceManager.TopWindow is DaggerfallRestWindow) // Changes behavior slightly when player is in "resting" mode of any kind.
+                    {
+                        MagicRoundTracker++;
+                        Debug.LogFormat("MagicRoundTracker = {0}", MagicRoundTracker);
+                        if (MagicRoundTracker < 11) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 11 rounds counted.
+                            return;
+                        else
+                            MagicRoundTracker = 0;
+                    }
+
                     regenAmount = (int)Mathf.Floor(playerWillMod);
                     if (Dice100.SuccessRoll(willModRemain)) // Rolls the remainder of the Willpower mod value to see if "rounds" up or not, has a luck modifier.
                         regenAmount += 1;
