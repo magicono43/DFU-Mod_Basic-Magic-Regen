@@ -31,7 +31,6 @@ namespace BasicMagicRegen
             mod = initParams.Mod;
             var go = new GameObject("BasicMagicRegen");
             go.AddComponent<BasicMagicRegen>();
-			EntityEffectBroker.OnNewMagicRound += MagicRegen_OnNewMagicRound;
         }
 		
 		void Awake() // Needs to be trimmed down, but should be ok for testing phase.
@@ -65,8 +64,10 @@ namespace BasicMagicRegen
 		private static void InitMod()
         {
             Debug.Log("Begin mod init: BasicMagicRegen");
-			
-			Debug.Log("Finished mod init: BasicMagicRegen");
+
+            EntityEffectBroker.OnNewMagicRound += MagicRegen_OnNewMagicRound;
+
+            Debug.Log("Finished mod init: BasicMagicRegen");
 		}
 		
 		#endregion
