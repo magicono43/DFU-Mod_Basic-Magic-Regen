@@ -79,7 +79,7 @@ namespace BasicMagicRegen
             float playerLuckMod = (playerLuck * .015f) + 1;
             int willModRemain = (int)Mathf.Clamp(Mathf.Floor((playerWillMod - (float)Math.Truncate(playerWillMod)) * 100 * playerLuckMod), 0, 100);
 
-            if (!GameManager.Instance.PlayerEffectManager.HasReadySpell) // Keeps magic from regenerating while player is in "Ready to cast" state, as to prevent overflow if they refund the spell.
+            if (!player.Career.NoRegenSpellPoints && !GameManager.Instance.PlayerEffectManager.HasReadySpell) // Keeps magic from regenerating while player is in "Ready to cast" state, as to prevent overflow if they refund the spell.
             {
                 if (player.CurrentMagicka < player.MaxMagicka) // Only allows magic regeneration to occur when the player is below their maximum mana amount.
                 {
