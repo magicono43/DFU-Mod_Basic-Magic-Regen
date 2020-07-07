@@ -65,7 +65,8 @@ namespace BasicMagicRegen
         {
             Debug.Log("Begin mod init: BasicMagicRegen");
 
-            EntityEffectBroker.OnNewMagicRound += MagicRegen_OnNewMagicRound;
+            //EntityEffectBroker.OnNewMagicRound += MagicRegenFlat_OnNewMagicRound;
+            EntityEffectBroker.OnNewMagicRound += MagicRegenPercent_OnNewMagicRound;
 
             Debug.Log("Finished mod init: BasicMagicRegen");
 		}
@@ -74,7 +75,7 @@ namespace BasicMagicRegen
 		
 		// Look into making a super basic "OnNewMagicRound" based "live" magic regeneration function and see if it works out.
 		
-		private static void MagicRegen_OnNewMagicRound() // Work on the percentage based "setting" option over this static one, also other possible options.
+		private static void MagicRegenFlat_OnNewMagicRound() // Work on the percentage based "setting" option over this static one, also other possible options.
 		{
             float playerWillMod = (player.Stats.LiveWillpower / 10f);
             int playerLuck = player.Stats.LiveLuck - 50;
@@ -108,5 +109,41 @@ namespace BasicMagicRegen
                 }
             }
         }
-	}
+
+        private static void MagicRegenPercent_OnNewMagicRound()
+        {
+            float playerWillMod = (player.Stats.LiveWillpower / 10f);
+            int playerLuck = player.Stats.LiveLuck - 50;
+            float playerLuckMod = (playerLuck * .015f) + 1;
+            int willModRemain = (int)Mathf.Clamp(Mathf.Floor((playerWillMod - (float)Math.Truncate(playerWillMod)) * 100 * playerLuckMod), 0, 100);
+
+            if (!player.Career.NoRegenSpellPoints && !GameManager.Instance.PlayerEffectManager.HasReadySpell) // Keeps magic from regenerating while player is in "Ready to cast" state, as to prevent overflow if they refund the spell.
+            {
+                if (player.CurrentMagicka < player.MaxMagicka) // Only allows magic regeneration to occur when the player is below their maximum mana amount.
+                {
+                    if (DaggerfallUI.Instance.UserInterfaceManager.TopWindow is DaggerfallRestWindow) // Changes behavior slightly when player is in "resting" mode of any kind.
+                    {
+                        MagicRoundTracker++;
+                        Debug.LogFormat("MagicRoundTracker = {0}", MagicRoundTracker);
+                        if (MagicRoundTracker < 11) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 11 rounds counted.
+                            return;
+                        else
+                            MagicRoundTracker = 0; // I need to add something to this resting, possibly the "OnRestEnd" event handler to make it so there is not that giant spike of mana regen ticks as the end of a rest session.
+                    }
+
+                    int addRemainder = 0;
+                    if (Dice100.SuccessRoll(willModRemain)) // Rolls the remainder of the Willpower mod value to see if "rounds" up or not, has a luck modifier.
+                        addRemainder = 1;
+                    regenAmount = Mathf.Max((int)Mathf.Round(((int)playerWillMod + addRemainder) * (player.MaxMagicka / 100f)), 1);
+
+                    if (player.MaxMagicka < (player.CurrentMagicka + regenAmount)) // Checks if amount about to be regenerated would go over their players maximum mana pool amount.
+                    {
+                        regenAmount -= player.CurrentMagicka + regenAmount - player.MaxMagicka; // If true, regen amount will be limited as to only regen what space the max mana pool has left to fill.
+                    }
+                    Debug.LogFormat("Regenerating Mana Amount of, {0}", regenAmount);
+                    player.IncreaseMagicka(regenAmount); // Actual part where mana is regenerated into the player's current mana pool amount.
+                }
+            }
+        }
+    }
 }
