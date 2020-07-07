@@ -20,8 +20,15 @@ namespace BasicMagicRegen
 	public class BasicMagicRegen : MonoBehaviour
 	{
 		static Mod mod;
-		
-		[Invoke(StateManager.StateTypes.Start, 0)]
+
+        static PlayerEntity player = GameManager.Instance.PlayerEntity;
+        static float playerWillMod = (player.Stats.LiveWillpower / 10f);
+        static int playerLuck = player.Stats.LiveLuck - 50;
+        static float playerLuckMod = (playerLuck * .015f) + 1;
+        static int willModRemain = (int)Mathf.Clamp(Mathf.Floor((playerWillMod - (float)Math.Truncate(playerWillMod)) * 100 * playerLuckMod), 0, 100);
+        static int regenAmount = 0;
+
+        [Invoke(StateManager.StateTypes.Start, 0)]
         public static void Init(InitParams initParams)
         {
             mod = initParams.Mod;
@@ -32,7 +39,7 @@ namespace BasicMagicRegen
 		
 		void Awake() // Needs to be trimmed down, but should be ok for testing phase.
         {	
-            ModSettings settings = mod.GetSettings();
+            /*ModSettings settings = mod.GetSettings();
             Mod roleplayRealism = ModManager.Instance.GetMod("RoleplayRealism");
             Mod meanerMonsters = ModManager.Instance.GetMod("Meaner Monsters");
             bool equipmentDamageEnhanced = settings.GetBool("Modules", "equipmentDamageEnhanced");
@@ -49,7 +56,7 @@ namespace BasicMagicRegen
             if (meanerMonsters != null)
             {
                 ralzarMeanerMonstersEdit = true;
-            }
+            }*/
 
             InitMod();
 
@@ -71,7 +78,22 @@ namespace BasicMagicRegen
 		
 		private static void MagicRegen_OnNewMagicRound()
 		{
-			
-		}
+            if (!GameManager.Instance.PlayerEffectManager.HasReadySpell) // Keeps magic from regenerating while player is in "Ready to cast" state, as to prevent overflow if they refund the spell.
+            {
+                if (player.CurrentMagicka < player.MaxMagicka) // Only allows magic regeneration to occur when the player is below their maximum mana amount.
+                {
+                    regenAmount = (int)Mathf.Floor(playerWillMod);
+                    if (Dice100.SuccessRoll(willModRemain)) // Rolls the remainder of the Willpower mod value to see if "rounds" up or not, has a luck modifier.
+                        regenAmount += 1;
+
+                    if (player.MaxMagicka < (player.CurrentMagicka + regenAmount)) // Checks if amount about to be regenerated would go over their players maximum mana pool amount.
+                    {
+                        regenAmount -= player.CurrentMagicka + regenAmount - player.MaxMagicka; // If true, regen amount will be limited as to only regen what space the max mana pool has left to fill.
+                    }
+
+                    player.IncreaseMagicka(regenAmount); // Actual part where mana is regenerated into the player's current mana pool amount.
+                }
+            }
+        }
 	}
 }
