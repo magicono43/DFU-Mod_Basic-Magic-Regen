@@ -22,10 +22,6 @@ namespace BasicMagicRegen
 		static Mod mod;
 
         static PlayerEntity player = GameManager.Instance.PlayerEntity;
-        static float playerWillMod = (player.Stats.LiveWillpower / 10f);
-        static int playerLuck = player.Stats.LiveLuck - 50;
-        static float playerLuckMod = (playerLuck * .015f) + 1;
-        static int willModRemain = (int)Mathf.Clamp(Mathf.Floor((playerWillMod - (float)Math.Truncate(playerWillMod)) * 100 * playerLuckMod), 0, 100);
         static int regenAmount = 0;
 
         [Invoke(StateManager.StateTypes.Start, 0)]
@@ -78,6 +74,11 @@ namespace BasicMagicRegen
 		
 		private static void MagicRegen_OnNewMagicRound()
 		{
+            float playerWillMod = (player.Stats.LiveWillpower / 10f);
+            int playerLuck = player.Stats.LiveLuck - 50;
+            float playerLuckMod = (playerLuck * .015f) + 1;
+            int willModRemain = (int)Mathf.Clamp(Mathf.Floor((playerWillMod - (float)Math.Truncate(playerWillMod)) * 100 * playerLuckMod), 0, 100);
+
             if (!GameManager.Instance.PlayerEffectManager.HasReadySpell) // Keeps magic from regenerating while player is in "Ready to cast" state, as to prevent overflow if they refund the spell.
             {
                 if (player.CurrentMagicka < player.MaxMagicka) // Only allows magic regeneration to occur when the player is below their maximum mana amount.
@@ -90,7 +91,7 @@ namespace BasicMagicRegen
                     {
                         regenAmount -= player.CurrentMagicka + regenAmount - player.MaxMagicka; // If true, regen amount will be limited as to only regen what space the max mana pool has left to fill.
                     }
-
+                    Debug.LogFormat("Regenerating Mana Amount of, {0}", regenAmount);
                     player.IncreaseMagicka(regenAmount); // Actual part where mana is regenerated into the player's current mana pool amount.
                 }
             }
