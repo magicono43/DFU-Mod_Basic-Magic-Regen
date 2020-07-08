@@ -4,10 +4,11 @@
     "ModAuthor": "Kirk.O",
     "ContactInfo": "kirkoliveri@gmail.com",
     "DFUnity_Version": "0.10.24",
-    "ModDescription": "Adds A Very Basic Magic Regeneration System For The Player.",
+    "ModDescription": "Adds A Very Basic Passive Magic Regeneration System For The Player.",
     "GUID": "3bc2dc02-1dee-4e08-8554-c432001b86af",
     "Files": [
         "Assets/Game/Mods/BasicMagicRegen.cs",
-        "Assets/Game/Mods/modsettings.json"
+        "Assets/Game/Mods/modsettings.json",
+        "Assets/Game/Mods/BasicMagicRegen.dfmod.json"
     ]
 }
