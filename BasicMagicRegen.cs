@@ -1,29 +1,37 @@
-using DaggerfallConnect;
-using DaggerfallWorkshop;
+// Project:         PhysicalCombatAndArmorOverhaul mod for Daggerfall Unity (http://www.dfworkshop.net)
+// Copyright:       Copyright (C) 2020 Kirk.O
+// License:         MIT License (http://www.opensource.org/licenses/mit-license.php)
+// Author:          Kirk.O
+// Created On: 	    7/5/2020, 6:00 PM
+// Last Edit:		7/8/2020, 1:05 AM
+// Version:			1.00
+// Special Thanks:  Hazelnut, Ralzar, Jefetienne, and Interkarma
+// Modifier:
+
 using DaggerfallWorkshop.Game;
-using DaggerfallWorkshop.Game.Formulas;
 using DaggerfallWorkshop.Game.Entity;
-using DaggerfallWorkshop.Game.Items;
 using DaggerfallWorkshop.Game.Utility.ModSupport;
 using DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings;
 using DaggerfallWorkshop.Game.Utility;
-using DaggerfallWorkshop.Utility;
-using DaggerfallWorkshop.Game.UserInterfaceWindows;
 using DaggerfallWorkshop.Game.MagicAndEffects;
-using DaggerfallWorkshop.Game.MagicAndEffects.MagicEffects;
 using UnityEngine;
 using System;
-using System.Collections.Generic;
 
 namespace BasicMagicRegen
 {
-	public class BasicMagicRegen : MonoBehaviour
+    public class BasicMagicRegen : MonoBehaviour
 	{
 		static Mod mod;
 
+        // Options
+        static int magicRegenType = 0;
+        static int tickRegenFrequency = 1;
+        static float regenAmountModifier = 1;
+
         static PlayerEntity player = GameManager.Instance.PlayerEntity;
         static int regenAmount = 0;
-        public static int MagicRoundTracker { get; set; }
+        public static int RestMagicRoundTracker { get; set; }
+        public static int OptionsMagicRoundTracker { get; set; }
 
         [Invoke(StateManager.StateTypes.Start, 0)]
         public static void Init(InitParams initParams)
@@ -33,27 +41,8 @@ namespace BasicMagicRegen
             go.AddComponent<BasicMagicRegen>();
         }
 		
-		void Awake() // Needs to be trimmed down, but should be ok for testing phase.
-        {	
-            /*ModSettings settings = mod.GetSettings();
-            Mod roleplayRealism = ModManager.Instance.GetMod("RoleplayRealism");
-            Mod meanerMonsters = ModManager.Instance.GetMod("Meaner Monsters");
-            bool equipmentDamageEnhanced = settings.GetBool("Modules", "equipmentDamageEnhanced");
-			bool fixedStrengthDamageModifier = settings.GetBool("Modules", "fixedStrengthDamageModifier");
-			bool armorHitFormulaRedone = settings.GetBool("Modules", "armorHitFormulaRedone");
-			bool criticalStrikesIncreaseDamage = settings.GetBool("Modules", "criticalStrikesIncreaseDamage");
-            bool rolePlayRealismArcheryModule = false;
-            bool ralzarMeanerMonstersEdit = false;
-            if (roleplayRealism != null)
-            {
-                ModSettings rolePlayRealismSettings = roleplayRealism.GetSettings();
-                rolePlayRealismArcheryModule = rolePlayRealismSettings.GetBool("Modules", "advancedArchery");
-            }
-            if (meanerMonsters != null)
-            {
-                ralzarMeanerMonstersEdit = true;
-            }*/
-
+		void Awake()
+        {
             InitMod();
 
             mod.IsReady = true;
@@ -65,17 +54,24 @@ namespace BasicMagicRegen
         {
             Debug.Log("Begin mod init: BasicMagicRegen");
 
-            EntityEffectBroker.OnNewMagicRound += MagicRegenFlat_OnNewMagicRound;
-            //EntityEffectBroker.OnNewMagicRound += MagicRegenPercent_OnNewMagicRound;
+            ModSettings settings = mod.GetSettings();
+            magicRegenType = settings.GetInt("Options", "MagicRegenType");
+            tickRegenFrequency = settings.GetInt("Options", "TickRegenFrequency");
+            regenAmountModifier = settings.GetFloat("Options", "RegenAmountModifier");
+
+            if (magicRegenType == 0)
+                EntityEffectBroker.OnNewMagicRound += MagicRegenFlat_OnNewMagicRound;
+            else if (magicRegenType == 1)
+                EntityEffectBroker.OnNewMagicRound += MagicRegenPercent_OnNewMagicRound;
 
             Debug.Log("Finished mod init: BasicMagicRegen");
 		}
-		
-		#endregion
-		
-		// Look into making a super basic "OnNewMagicRound" based "live" magic regeneration function and see if it works out.
-		
-		private static void MagicRegenFlat_OnNewMagicRound() // Work on the percentage based "setting" option over this static one, also other possible options.
+
+        #endregion
+
+        #region Methods and Functions
+
+        private static void MagicRegenFlat_OnNewMagicRound()
 		{
             float playerWillMod = (player.Stats.LiveWillpower / 10f);
             int playerLuck = player.Stats.LiveLuck - 50;
@@ -86,26 +82,63 @@ namespace BasicMagicRegen
             {
                 if (player.CurrentMagicka < player.MaxMagicka) // Only allows magic regeneration to occur when the player is below their maximum mana amount.
                 {
-                    if (player.IsResting) // Changes behavior slightly when player is in "resting" mode of any kind.
+                    if (tickRegenFrequency == 1)
                     {
-                        MagicRoundTracker++;
-                        Debug.LogFormat("MagicRoundTracker = {0}", MagicRoundTracker);
-                        if (MagicRoundTracker < 9) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 9 rounds counted.
+                        if (player.IsResting) // Changes behavior slightly when player is in "resting" mode of any kind.
+                        {
+                            RestMagicRoundTracker++;
+                            //Debug.LogFormat("RestMagicRoundTracker = {0}", RestMagicRoundTracker);
+                            if (RestMagicRoundTracker < 9) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 9 rounds counted.
+                                return;
+                            else
+                                RestMagicRoundTracker = 0;
+                        }
+
+                        regenAmount = (int)Mathf.Floor(playerWillMod);
+                        if (Dice100.SuccessRoll(willModRemain)) // Rolls the remainder of the Willpower mod value to see if "rounds" up or not, has a luck modifier.
+                            regenAmount += 1;
+                        regenAmount = (int)Mathf.Round(regenAmount * regenAmountModifier);
+
+                        if (player.MaxMagicka < (player.CurrentMagicka + regenAmount)) // Checks if amount about to be regenerated would go over their players maximum mana pool amount.
+                        {
+                            regenAmount -= player.CurrentMagicka + regenAmount - player.MaxMagicka; // If true, regen amount will be limited as to only regen what space the max mana pool has left to fill.
+                        }
+                        //Debug.LogFormat("Regenerating Mana Amount of, {0}", regenAmount);
+                        player.IncreaseMagicka(regenAmount); // Actual part where mana is regenerated into the player's current mana pool amount.
+                        return;
+                    }
+                    else
+                    {
+                        OptionsMagicRoundTracker++;
+                        //Debug.LogFormat("OptionsMagicRoundTracker = {0}", OptionsMagicRoundTracker);
+                        if (OptionsMagicRoundTracker < tickRegenFrequency)
                             return;
                         else
-                            MagicRoundTracker = 0;
-                    }
+                            OptionsMagicRoundTracker = 0;
 
-                    regenAmount = (int)Mathf.Floor(playerWillMod);
-                    if (Dice100.SuccessRoll(willModRemain)) // Rolls the remainder of the Willpower mod value to see if "rounds" up or not, has a luck modifier.
-                        regenAmount += 1;
+                        if (player.IsResting) // Changes behavior slightly when player is in "resting" mode of any kind.
+                        {
+                            RestMagicRoundTracker++;
+                            //Debug.LogFormat("RestMagicRoundTracker = {0}", RestMagicRoundTracker);
+                            if (RestMagicRoundTracker < 9) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 9 rounds counted.
+                                return;
+                            else
+                                RestMagicRoundTracker = 0;
+                        }
 
-                    if (player.MaxMagicka < (player.CurrentMagicka + regenAmount)) // Checks if amount about to be regenerated would go over their players maximum mana pool amount.
-                    {
-                        regenAmount -= player.CurrentMagicka + regenAmount - player.MaxMagicka; // If true, regen amount will be limited as to only regen what space the max mana pool has left to fill.
+                        regenAmount = (int)Mathf.Floor(playerWillMod);
+                        if (Dice100.SuccessRoll(willModRemain)) // Rolls the remainder of the Willpower mod value to see if "rounds" up or not, has a luck modifier.
+                            regenAmount += 1;
+                        regenAmount = (int)Mathf.Round(regenAmount * regenAmountModifier);
+
+                        if (player.MaxMagicka < (player.CurrentMagicka + regenAmount)) // Checks if amount about to be regenerated would go over their players maximum mana pool amount.
+                        {
+                            regenAmount -= player.CurrentMagicka + regenAmount - player.MaxMagicka; // If true, regen amount will be limited as to only regen what space the max mana pool has left to fill.
+                        }
+                        //Debug.LogFormat("Regenerating Mana Amount of, {0}", regenAmount);
+                        player.IncreaseMagicka(regenAmount); // Actual part where mana is regenerated into the player's current mana pool amount.
+                        return;
                     }
-                    Debug.LogFormat("Regenerating Mana Amount of, {0}", regenAmount);
-                    player.IncreaseMagicka(regenAmount); // Actual part where mana is regenerated into the player's current mana pool amount.
                 }
             }
         }
@@ -121,29 +154,70 @@ namespace BasicMagicRegen
             {
                 if (player.CurrentMagicka < player.MaxMagicka) // Only allows magic regeneration to occur when the player is below their maximum mana amount.
                 {
-                    if (player.IsResting) // Changes behavior slightly when player is in "resting" mode of any kind.
+                    if (tickRegenFrequency == 1)
                     {
-                        MagicRoundTracker++;
-                        Debug.LogFormat("MagicRoundTracker = {0}", MagicRoundTracker);
-                        if (MagicRoundTracker < 17) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 17 rounds counted.
+                        if (player.IsResting) // Changes behavior slightly when player is in "resting" mode of any kind.
+                        {
+                            RestMagicRoundTracker++;
+                            //Debug.LogFormat("RestMagicRoundTracker = {0}", RestMagicRoundTracker);
+                            if (RestMagicRoundTracker < 17) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 17 rounds counted.
+                                return;
+                            else
+                                RestMagicRoundTracker = 0;
+                        }
+
+                        int addRemainder = 0;
+                        if (Dice100.SuccessRoll(willModRemain)) // Rolls the remainder of the Willpower mod value to see if "rounds" up or not, has a luck modifier.
+                            addRemainder = 1;
+                        regenAmount = Mathf.Max((int)Mathf.Round(((int)playerWillMod + addRemainder) * (player.MaxMagicka / 100f)), 1);
+                        regenAmount = (int)Mathf.Round(regenAmount * regenAmountModifier);
+
+                        if (player.MaxMagicka < (player.CurrentMagicka + regenAmount)) // Checks if amount about to be regenerated would go over their players maximum mana pool amount.
+                        {
+                            regenAmount -= player.CurrentMagicka + regenAmount - player.MaxMagicka; // If true, regen amount will be limited as to only regen what space the max mana pool has left to fill.
+                        }
+                        //Debug.LogFormat("Regenerating Mana Amount of, {0}", regenAmount);
+                        player.IncreaseMagicka(regenAmount); // Actual part where mana is regenerated into the player's current mana pool amount.
+                        return;
+                    }
+                    else
+                    {
+                        OptionsMagicRoundTracker++;
+                        //Debug.LogFormat("OptionsMagicRoundTracker = {0}", OptionsMagicRoundTracker);
+                        if (OptionsMagicRoundTracker < tickRegenFrequency)
                             return;
                         else
-                            MagicRoundTracker = 0;
-                    }
+                            OptionsMagicRoundTracker = 0;
 
-                    int addRemainder = 0;
-                    if (Dice100.SuccessRoll(willModRemain)) // Rolls the remainder of the Willpower mod value to see if "rounds" up or not, has a luck modifier.
-                        addRemainder = 1;
-                    regenAmount = Mathf.Max((int)Mathf.Round(((int)playerWillMod + addRemainder) * (player.MaxMagicka / 100f)), 1);
+                        if (player.IsResting) // Changes behavior slightly when player is in "resting" mode of any kind.
+                        {
+                            RestMagicRoundTracker++;
+                            //Debug.LogFormat("RestMagicRoundTracker = {0}", RestMagicRoundTracker);
+                            if (RestMagicRoundTracker < 17) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 17 rounds counted.
+                                return;
+                            else
+                                RestMagicRoundTracker = 0;
+                        }
 
-                    if (player.MaxMagicka < (player.CurrentMagicka + regenAmount)) // Checks if amount about to be regenerated would go over their players maximum mana pool amount.
-                    {
-                        regenAmount -= player.CurrentMagicka + regenAmount - player.MaxMagicka; // If true, regen amount will be limited as to only regen what space the max mana pool has left to fill.
+                        int addRemainder = 0;
+                        if (Dice100.SuccessRoll(willModRemain)) // Rolls the remainder of the Willpower mod value to see if "rounds" up or not, has a luck modifier.
+                            addRemainder = 1;
+                        regenAmount = Mathf.Max((int)Mathf.Round(((int)playerWillMod + addRemainder) * (player.MaxMagicka / 100f)), 1);
+                        regenAmount = (int)Mathf.Round(regenAmount * regenAmountModifier);
+
+                        if (player.MaxMagicka < (player.CurrentMagicka + regenAmount)) // Checks if amount about to be regenerated would go over their players maximum mana pool amount.
+                        {
+                            regenAmount -= player.CurrentMagicka + regenAmount - player.MaxMagicka; // If true, regen amount will be limited as to only regen what space the max mana pool has left to fill.
+                        }
+                        //Debug.LogFormat("Regenerating Mana Amount of, {0}", regenAmount);
+                        player.IncreaseMagicka(regenAmount); // Actual part where mana is regenerated into the player's current mana pool amount.
+                        return;
                     }
-                    Debug.LogFormat("Regenerating Mana Amount of, {0}", regenAmount);
-                    player.IncreaseMagicka(regenAmount); // Actual part where mana is regenerated into the player's current mana pool amount.
                 }
             }
         }
+
+        #endregion
+
     }
 }

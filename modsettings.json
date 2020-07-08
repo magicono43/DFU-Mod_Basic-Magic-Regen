@@ -1,0 +1,40 @@
+{
+    "Version": "1.0",
+    "Sections": [
+        {
+            "Name": "Options",
+            "Description": "Options And Preferences For This Mod.",
+            "IsAdvanced": false,
+            "Keys": [
+                {
+                    "Min": 0,
+                    "Max": 1,
+                    "Value": 0,
+                    "Name": "MagicRegenType",
+                    "Description": "Default 0 = Flat Regen From Will || 1 = Percent Regen From Will",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
+                },
+                {
+                    "Min": 1,
+                    "Max": 6,
+                    "Value": 1,
+                    "Name": "TickRegenFrequency",
+                    "Description": "Default = 1 || Magic Rounds Between Regen Ticks. 1 Magic Round = ~5 Seconds",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
+                },
+                {
+                    "Min": 0.25,
+                    "Max": 5.0,
+                    "Value": 1.0,
+                    "Name": "RegenAmountModifier",
+                    "Description": "Default = 1 || Multiplier For Final Regen Value Amount Per Regen Tick.",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderFloatKey"
+                }
+            ],
+            "$version": "v1"
+        }
+    ]
+}
