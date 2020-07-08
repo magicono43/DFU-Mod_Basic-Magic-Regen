@@ -65,8 +65,8 @@ namespace BasicMagicRegen
         {
             Debug.Log("Begin mod init: BasicMagicRegen");
 
-            //EntityEffectBroker.OnNewMagicRound += MagicRegenFlat_OnNewMagicRound;
-            EntityEffectBroker.OnNewMagicRound += MagicRegenPercent_OnNewMagicRound;
+            EntityEffectBroker.OnNewMagicRound += MagicRegenFlat_OnNewMagicRound;
+            //EntityEffectBroker.OnNewMagicRound += MagicRegenPercent_OnNewMagicRound;
 
             Debug.Log("Finished mod init: BasicMagicRegen");
 		}
@@ -86,11 +86,11 @@ namespace BasicMagicRegen
             {
                 if (player.CurrentMagicka < player.MaxMagicka) // Only allows magic regeneration to occur when the player is below their maximum mana amount.
                 {
-                    if (DaggerfallUI.Instance.UserInterfaceManager.TopWindow is DaggerfallRestWindow) // Changes behavior slightly when player is in "resting" mode of any kind.
+                    if (player.IsResting) // Changes behavior slightly when player is in "resting" mode of any kind.
                     {
                         MagicRoundTracker++;
                         Debug.LogFormat("MagicRoundTracker = {0}", MagicRoundTracker);
-                        if (MagicRoundTracker < 11) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 11 rounds counted.
+                        if (MagicRoundTracker < 9) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 9 rounds counted.
                             return;
                         else
                             MagicRoundTracker = 0;
@@ -121,14 +121,14 @@ namespace BasicMagicRegen
             {
                 if (player.CurrentMagicka < player.MaxMagicka) // Only allows magic regeneration to occur when the player is below their maximum mana amount.
                 {
-                    if (DaggerfallUI.Instance.UserInterfaceManager.TopWindow is DaggerfallRestWindow) // Changes behavior slightly when player is in "resting" mode of any kind.
+                    if (player.IsResting) // Changes behavior slightly when player is in "resting" mode of any kind.
                     {
                         MagicRoundTracker++;
                         Debug.LogFormat("MagicRoundTracker = {0}", MagicRoundTracker);
-                        if (MagicRoundTracker < 11) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 11 rounds counted.
+                        if (MagicRoundTracker < 17) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 17 rounds counted.
                             return;
                         else
-                            MagicRoundTracker = 0; // I need to add something to this resting, possibly the "OnRestEnd" event handler to make it so there is not that giant spike of mana regen ticks as the end of a rest session.
+                            MagicRoundTracker = 0;
                     }
 
                     int addRemainder = 0;
