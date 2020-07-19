@@ -1,10 +1,10 @@
-// Project:         PhysicalCombatAndArmorOverhaul mod for Daggerfall Unity (http://www.dfworkshop.net)
+// Project:         BasicMagicRegen mod for Daggerfall Unity (http://www.dfworkshop.net)
 // Copyright:       Copyright (C) 2020 Kirk.O
 // License:         MIT License (http://www.opensource.org/licenses/mit-license.php)
 // Author:          Kirk.O
 // Created On: 	    7/5/2020, 6:00 PM
-// Last Edit:		7/8/2020, 1:05 AM
-// Version:			1.00
+// Last Edit:		7/18/2020, 9:30 PM
+// Version:			1.10
 // Special Thanks:  Hazelnut, Ralzar, Jefetienne, and Interkarma
 // Modifier:
 
@@ -26,6 +26,7 @@ namespace BasicMagicRegen
         // Options
         static int magicRegenType = 0;
         static int tickRegenFrequency = 1;
+        static int restRegenTickDelay = 0;
         static float regenAmountModifier = 1;
 
         static PlayerEntity player = GameManager.Instance.PlayerEntity;
@@ -57,6 +58,7 @@ namespace BasicMagicRegen
             ModSettings settings = mod.GetSettings();
             magicRegenType = settings.GetInt("Options", "MagicRegenType");
             tickRegenFrequency = settings.GetInt("Options", "TickRegenFrequency");
+            restRegenTickDelay = settings.GetInt("Options", "RestRegenTickDelay");
             regenAmountModifier = settings.GetFloat("Options", "RegenAmountModifier");
 
             if (magicRegenType == 0)
@@ -88,7 +90,7 @@ namespace BasicMagicRegen
                         {
                             RestMagicRoundTracker++;
                             //Debug.LogFormat("RestMagicRoundTracker = {0}", RestMagicRoundTracker);
-                            if (RestMagicRoundTracker < 9) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 9 rounds counted.
+                            if (RestMagicRoundTracker < restRegenTickDelay) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 9 rounds counted.
                                 return;
                             else
                                 RestMagicRoundTracker = 0;
@@ -120,7 +122,7 @@ namespace BasicMagicRegen
                         {
                             RestMagicRoundTracker++;
                             //Debug.LogFormat("RestMagicRoundTracker = {0}", RestMagicRoundTracker);
-                            if (RestMagicRoundTracker < 9) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 9 rounds counted.
+                            if (RestMagicRoundTracker < restRegenTickDelay) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 9 rounds counted.
                                 return;
                             else
                                 RestMagicRoundTracker = 0;
@@ -160,7 +162,7 @@ namespace BasicMagicRegen
                         {
                             RestMagicRoundTracker++;
                             //Debug.LogFormat("RestMagicRoundTracker = {0}", RestMagicRoundTracker);
-                            if (RestMagicRoundTracker < 17) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 17 rounds counted.
+                            if (RestMagicRoundTracker < restRegenTickDelay) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 17 rounds counted.
                                 return;
                             else
                                 RestMagicRoundTracker = 0;
@@ -193,7 +195,7 @@ namespace BasicMagicRegen
                         {
                             RestMagicRoundTracker++;
                             //Debug.LogFormat("RestMagicRoundTracker = {0}", RestMagicRoundTracker);
-                            if (RestMagicRoundTracker < 17) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 17 rounds counted.
+                            if (RestMagicRoundTracker < restRegenTickDelay) // Not the most elegant solution out there, but it seems to work for this purpose fairly well. While resting only ticks regen every 17 rounds counted.
                                 return;
                             else
                                 RestMagicRoundTracker = 0;

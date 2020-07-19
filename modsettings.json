@@ -25,11 +25,20 @@
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
                 },
                 {
+                    "Min": 0,
+                    "Max": 100,
+                    "Value": 10,
+                    "Name": "RestRegenTickDelay",
+                    "Description": "Default = 10 || Magic Rounds Between Regen Ticks During Rest Or Loitering",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
+                },
+                {
                     "Min": 0.25,
                     "Max": 5.0,
                     "Value": 1.0,
                     "Name": "RegenAmountModifier",
-                    "Description": "Default = 1 || Multiplier For Final Regen Value Amount Per Regen Tick.",
+                    "Description": "Default = 1 || Multiplier For Final Regen Value Amount Per Regen Tick",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderFloatKey"
                 }

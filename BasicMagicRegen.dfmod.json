@@ -1,9 +1,9 @@
 {
     "ModTitle": "BasicMagicRegen",
-    "ModVersion": "1.00",
+    "ModVersion": "1.10",
     "ModAuthor": "Kirk.O",
     "ContactInfo": "kirkoliveri@gmail.com",
-    "DFUnity_Version": "0.10.24",
+    "DFUnity_Version": "0.10.25",
     "ModDescription": "Adds A Very Basic Passive Magic Regeneration System For The Player.",
     "GUID": "3bc2dc02-1dee-4e08-8554-c432001b86af",
     "Files": [
