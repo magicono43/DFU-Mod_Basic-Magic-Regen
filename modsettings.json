@@ -10,7 +10,16 @@
                     "Min": 0,
                     "Max": 1,
                     "Value": 0,
-                    "Name": "MagicRegenType",
+                    "Name": "RegenType",
+                    "Description": "Default 0 = Real-time Regen || 1 = Magic-round Based Regen",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
+                },
+                {
+                    "Min": 0,
+                    "Max": 1,
+                    "Value": 0,
+                    "Name": "FlatOrPercentageBased",
                     "Description": "Default 0 = Flat Regen From Will || 1 = Percent Regen From Will",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
@@ -19,26 +28,26 @@
                     "Min": 1,
                     "Max": 6,
                     "Value": 1,
-                    "Name": "TickRegenFrequency",
-                    "Description": "Default = 1 || Magic Rounds Between Regen Ticks. 1 Magic Round = ~5 Seconds",
+                    "Name": "TickFrequency",
+                    "Description": "Default = 1 || Magic Rounds Between Regen Ticks. 1 Magic Round = ~5 Seconds (Does Nothing If Using Real-time Regen)",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
                 },
                 {
-                    "Min": 0,
-                    "Max": 100,
-                    "Value": 10,
-                    "Name": "RestRegenTickDelay",
-                    "Description": "Default = 10 || Magic Rounds Between Regen Ticks During Rest Or Loitering",
-                    "$version": "v1",
-                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderIntKey"
-                },
-                {
-                    "Min": 0.25,
-                    "Max": 5.0,
+                    "Min": 0.1,
+                    "Max": 4.0,
                     "Value": 1.0,
-                    "Name": "RegenAmountModifier",
+                    "Name": "RegenMulti",
                     "Description": "Default = 1 || Multiplier For Final Regen Value Amount Per Regen Tick",
+                    "$version": "v1",
+                    "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderFloatKey"
+                },
+                {
+                    "Min": 0.1,
+                    "Max": 4.0,
+                    "Value": 1.0,
+                    "Name": "RestMulti",
+                    "Description": "Default = 1 || Multiplier For Rest Regen Amount Per Hour, There Are Min/Max Limits",
                     "$version": "v1",
                     "$type": "DaggerfallWorkshop.Game.Utility.ModSupport.ModSettings.SliderFloatKey"
                 }
